@@ -12,7 +12,7 @@ Created on Fri May  9 23:09:01 2025
 
 # === ACCOUNT CLASS ===
 class Account:
-    def __init__(self, username, password, balance):
+    def __init__(self, username, password, balance, contact_info):
         """
         Constructor for the Account class.
         Initializes the account with a username, password, and starting balance.
@@ -20,8 +20,10 @@ class Account:
         """
         self.username = username
         self.password = password
-        self.failed_attempts = 0  # Track login attempts for security
-        self.balance = self.to_twos_complement(balance)
+        self.failed_attempts = 0  # Track login attempts for security 
+        self.contact_info = contact_info # Email or phone number 
+        self.transaction_history = [] # List to store recent activity 
+        self.balance = self.to_twos_complement(balance) 
 
     def to_twos_complement(self, value):
         """
@@ -63,8 +65,9 @@ class Account:
         """
         current = self.from_twos_complement()
         current += amount
-        self.balance = self.to_twos_complement(current)
-        return True
+        self.balance = self.to_twos_complement(current) 
+        self.transaction_history.append(f"Deposited £{amount}")
+        print(f"📩 ALERT: £{amount} credited. New balance: £{current} sent to {self.contact_info}") 
 
     def withdraw(self, amount):
         """
@@ -75,7 +78,9 @@ class Account:
         current = self.from_twos_complement()
         if current - amount >= -1500:
             current -= amount
-            self.balance = self.to_twos_complement(current)
+            self.balance = self.to_twos_complement(current) 
+            self.transaction_history.append(f"Withdraw £{amount}") 
+            print(f"📩 ALERT: £{amount} debited. New balance: £{current} sent to {self.contact_info}") 
             return True
         else:
             return False
@@ -88,23 +93,33 @@ class Account:
         """
         if self.withdraw(amount):
             other_account.deposit(amount)
+            self.transaction_history.append(f"Transferred £{amount} to {other_account.username}")
+            print(f"📩 ALERT: £{amount} transferred to {other_account.username}") 
             return True
         else:
-            return False
+            return False 
 
     def get_balance(self):
         """
         Returns the current account balance in decimal format.
         - Converts the stored binary balance back to human-readable format. 
         """
-        return self.from_twos_complement()
+        return self.from_twos_complement() 
+    
+    def show_mini_statement(self):
+        """
+        Displays the 5 most recent transactions.
+        """
+        print("===== MINI STATEMENT =====") 
+        for transaction in self.transaction_history[-5:]:
+            print(transaction) 
 
 
 # === TESTING BLOCK ===
 if __name__ == "__main__":
     # Create two account objects for testing
-    acc1 = Account("user1", "securePass", 500)
-    acc2 = Account("user2", "anotherPass", 1000)
+    acc1 = Account("user1", "securePass", 500, "user1@example.com")
+    acc2 = Account("user2", "anotherPass", 1000, "user2@example.com") 
 
     # Perform operations
     acc1.deposit(100)
@@ -126,7 +141,8 @@ class BankSystem:
         """
         self.accounts = {} # Dictionary to store user accounts 
      
-    def create_account(self):
+    def create_account(self): 
+     
         """
         Prompts the user to create a new account.
         - Checks for unique username. 
@@ -154,7 +170,8 @@ class BankSystem:
             return 
         
         # Create the new Account and add it to the dictionary 
-        new_account = Account(username, password, deposit) 
+        contact_info = input("Enter your email or phone number for alerts: ")
+        new_account = Account(username, password, deposit, contact_info) 
         self.accounts[username] = new_account
         print(f"Account for '{username}' created successfully!") 
         
@@ -165,7 +182,8 @@ class BankSystem:
         - Allows up to attempts before lockout.
         - Calls main menu if login is successful. 
         """
-        username = input("Enter your username:")
+        username = input("Enter your username:") 
+
         
         # Check if the accounts exists
         if username not in self.accounts:
@@ -201,9 +219,10 @@ class BankSystem:
             print("2. Deposit Money")
             print("3. Withdraw Money")
             print("4. Transfer Money")
-            print("5. Exit")
+            print("5. View Mini Statement")
+            print("6. Exit") 
             
-            choice = input("Enter your choice (1-5): ")
+            choice = input("Enter your choice (1-6): ")
             
             if choice == "1":
                 # Display account balance
@@ -250,12 +269,14 @@ class BankSystem:
                     print("Invalid input. Please enter a number.")
                     
             elif choice == "5":
-                # Exist the menu
-                print("Logging out...\n")
+                account.show_mini_statement() 
+                
+            elif choice == "6":
+                print("Logging out. Thank you for banking with us.")
                 break 
             
-            else:
-                print("Invalid choice. Please select a valid option.") 
+            else: 
+                print("Invalid selection. Please try again.")
                 
       
 # === PROGRAM ENTRY POINT ===                
